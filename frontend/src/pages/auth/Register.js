@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const Register = () => {
-  const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     firstName: '',
@@ -23,12 +23,22 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const res = await register(form);
-    setLoading(false);
-    if (res.success) {
-      navigate('/');
-    } else {
-      setError(res.message || 'Registration failed');
+    try {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      setLoading(false);
+      if (res.ok) {
+        navigate('/');
+      } else {
+        setError(data.message || 'Registration failed');
+      }
+    } catch (err) {
+      setLoading(false);
+      setError('Registration failed');
     }
   };
 
@@ -103,4 +113,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;
